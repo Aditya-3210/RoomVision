@@ -1,0 +1,16 @@
+# node
+node_modules/
+
+# env files
+.env
+
+# build outputs
+dist/
+build/
+
+# frontend specific safety
+frontend/build/
+frontend/dist/
+
+# logs
+npm-debug.log*

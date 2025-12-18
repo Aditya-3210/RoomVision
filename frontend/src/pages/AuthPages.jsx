@@ -1,11 +1,12 @@
 import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Loader } from 'lucide-react';
+import { Loader, Eye, EyeOff } from 'lucide-react';
 
 export const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
     const { login, loading: authLoading } = useContext(AuthContext); // Use authLoading if needed, but we mostly use local loading for button state
@@ -64,8 +65,8 @@ export const Login = () => {
                         <input
                             type="email"
                             className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-4 transition-all ${touched.email && errors.email
-                                    ? 'border-red-300 focus:ring-red-100 focus:border-red-500'
-                                    : 'border-slate-300 focus:ring-blue-100 focus:border-blue-500'
+                                ? 'border-red-300 focus:ring-red-100 focus:border-red-500'
+                                : 'border-slate-300 focus:ring-blue-100 focus:border-blue-500'
                                 }`}
                             value={email}
                             onChange={(e) => {
@@ -80,19 +81,29 @@ export const Login = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Password</label>
-                        <input
-                            type="password"
-                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-4 transition-all ${touched.password && errors.password
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-4 transition-all ${touched.password && errors.password
                                     ? 'border-red-300 focus:ring-red-100 focus:border-red-500'
                                     : 'border-slate-300 focus:ring-blue-100 focus:border-blue-500'
-                                }`}
-                            value={password}
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                                if (touched.password) validate();
-                            }}
-                            onBlur={() => handleBlur('password')}
-                        />
+                                    }`}
+                                value={password}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    if (touched.password) validate();
+                                }}
+                                onBlur={() => handleBlur('password')}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
                         {touched.password && errors.password && (
                             <p className="text-red-500 text-xs mt-1 font-medium">{errors.password}</p>
                         )}
@@ -117,6 +128,7 @@ export const Signup = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
@@ -193,8 +205,8 @@ export const Signup = () => {
                         <input
                             type="text"
                             className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-4 transition-all ${touched.name && errors.name
-                                    ? 'border-red-300 focus:ring-red-100 focus:border-red-500'
-                                    : 'border-slate-300 focus:ring-blue-100 focus:border-blue-500'
+                                ? 'border-red-300 focus:ring-red-100 focus:border-red-500'
+                                : 'border-slate-300 focus:ring-blue-100 focus:border-blue-500'
                                 }`}
                             value={name}
                             onChange={(e) => {
@@ -212,8 +224,8 @@ export const Signup = () => {
                         <input
                             type="email"
                             className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-4 transition-all ${touched.email && errors.email
-                                    ? 'border-red-300 focus:ring-red-100 focus:border-red-500'
-                                    : 'border-slate-300 focus:ring-blue-100 focus:border-blue-500'
+                                ? 'border-red-300 focus:ring-red-100 focus:border-red-500'
+                                : 'border-slate-300 focus:ring-blue-100 focus:border-blue-500'
                                 }`}
                             value={email}
                             onChange={(e) => {
@@ -228,24 +240,33 @@ export const Signup = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Password</label>
-                        <input
-                            type="password"
-                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-4 transition-all ${touched.password && errors.password
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-4 transition-all ${touched.password && errors.password
                                     ? 'border-red-300 focus:ring-red-100 focus:border-red-500'
                                     : 'border-slate-300 focus:ring-blue-100 focus:border-blue-500'
-                                }`}
-                            value={password}
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                                if (touched.password) validate();
-                            }}
-                            onBlur={() => handleBlur('password')}
-                        />
-                        {touched.password && errors.password ? (
+                                    }`}
+                                value={password}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    if (touched.password) validate();
+                                }}
+                                onBlur={() => handleBlur('password')}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
+                        {touched.password && errors.password && (
                             <p className="text-red-500 text-xs mt-1 font-medium">{errors.password}</p>
-                        ) : (
-                            <p className="text-slate-400 text-xs mt-1">Min 8 chars, 1 UPPER, 1 lower, 1 number, 1 special</p>
                         )}
+                        <p className="text-slate-400 text-xs mt-1">Min 8 chars, 1 UPPER, 1 lower, 1 number, 1 special</p>
                     </div>
                     <button
                         type="submit"

@@ -12,6 +12,10 @@ const furnitureSchema = new mongoose.Schema({
         type: String, // Optional GLB/GLTF URL for real AR
         default: '',
     },
+    modelThumbnailURL: {
+        type: String, // Thumbnail for 3D model display in catalogs
+        default: '',
+    },
     dimensions: {
         width: Number,
         height: Number,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Box } from 'lucide-react';
 
 const AdminPanel = () => {
     const [furniture, setFurniture] = useState([]);
@@ -9,6 +9,7 @@ const AdminPanel = () => {
         category: '',
         imageURL: '',
         modelURL: '',
+        modelThumbnailURL: '',
         dimensions: { width: 50, height: 50, depth: 0 }
     });
     const [activeTab, setActiveTab] = useState('furniture'); // furniture, users, projects
@@ -73,12 +74,29 @@ const AdminPanel = () => {
         }
     };
 
+    const handleModelThumbnailUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData({ ...formData, modelThumbnailURL: reader.result });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleAddFurniture = async (e) => {
         e.preventDefault();
 
         // Validation: At least one file must be uploaded
         if (!formData.imageURL && !formData.modelURL) {
             alert('Please upload either a 2D Image or a 3D Model.');
+            return;
+        }
+
+        // Validation: If 3D model is uploaded, require thumbnail
+        if (formData.modelURL && !formData.modelThumbnailURL) {
+            alert('Please upload a thumbnail for the 3D model.');
             return;
         }
 
@@ -90,6 +108,7 @@ const AdminPanel = () => {
                 category: '',
                 imageURL: '',
                 modelURL: '',
+                modelThumbnailURL: '',
                 dimensions: { width: 50, height: 50, depth: 0 }
             });
             fetchFurniture();
@@ -164,26 +183,45 @@ const AdminPanel = () => {
                                 />
                             </div>
 
-                            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-4 mt-2">
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Upload 2D Image</label>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageUpload}
-                                        className="w-full p-2 border border-blue-200 bg-blue-50 rounded focus:border-blue-500 outline-none"
-                                    />
-                                    {formData.imageURL && <p className="text-xs text-green-600 mt-1">Image Loaded!</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-1">Upload 3D Model (.glb)</label>
-                                    <input
-                                        type="file"
-                                        accept=".glb,.gltf"
-                                        onChange={handleModelUpload}
-                                        className="w-full p-2 border border-purple-200 bg-purple-50 rounded focus:border-purple-500 outline-none"
-                                    />
-                                    {formData.modelURL && <p className="text-xs text-green-600 mt-1">3D Model Loaded!</p>}
+                            <div className="md:col-span-2 border-t pt-4 mt-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">Upload 2D Image</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            className="w-full p-2 border border-blue-200 bg-blue-50 rounded focus:border-blue-500 outline-none"
+                                        />
+                                        {formData.imageURL && <p className="text-xs text-green-600 mt-1">Image Loaded!</p>}
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">Upload 3D Model (.glb)</label>
+                                            <input
+                                                type="file"
+                                                accept=".glb,.gltf"
+                                                onChange={handleModelUpload}
+                                                className="w-full p-2 border border-purple-200 bg-purple-50 rounded focus:border-purple-500 outline-none"
+                                            />
+                                            {formData.modelURL && <p className="text-xs text-green-600 mt-1">3D Model Loaded!</p>}
+                                        </div>
+                                        {formData.modelURL && (
+                                            <div>
+                                                <label className="block text-sm font-bold text-gray-700 mb-1">
+                                                    3D Thumbnail <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={handleModelThumbnailUpload}
+                                                    className="w-full p-2 border border-orange-200 bg-orange-50 rounded focus:border-orange-500 outline-none"
+                                                />
+                                                {formData.modelThumbnailURL && <p className="text-xs text-green-600 mt-1">Thumbnail Loaded!</p>}
+                                                <p className="text-xs text-gray-500 mt-1">Required for 3D catalog display</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -194,21 +232,34 @@ const AdminPanel = () => {
 
                     {/* List */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {furniture.map(item => (
-                            <div key={item._id} className="bg-white p-4 rounded shadow border flex justify-between items-center group hover:shadow-md transition">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden">
-                                        <img src={item.imageURL} alt={item.name} className="w-full h-full object-cover" />
+                        {furniture.map(item => {
+                            const has2D = !!item.imageURL;
+                            const has3D = !!item.modelURL && !!item.modelThumbnailURL;
+                            const displayThumbnail = has3D ? item.modelThumbnailURL : item.imageURL;
+
+                            return (
+                                <div key={item._id} className="bg-white p-4 rounded shadow border flex justify-between items-center group hover:shadow-md transition">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden flex items-center justify-center">
+                                            {displayThumbnail ? (
+                                                <img src={displayThumbnail} alt={item.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Box className="text-gray-300" size={32} />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-800">{item.name}</h4>
+                                            <p className="text-sm text-gray-500">{item.category}</p>
+                                            <div className="flex gap-1 mt-1">
+                                                {has2D && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">2D</span>}
+                                                {has3D && <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">3D</span>}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 className="font-bold text-gray-800">{item.name}</h4>
-                                        <p className="text-sm text-gray-500">{item.category}</p>
-                                        {item.modelURL && <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">3D READY</span>}
-                                    </div>
+                                    <button onClick={() => handleDeleteFurniture(item._id)} className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded transition"><Trash2 size={20} /></button>
                                 </div>
-                                <button onClick={() => handleDeleteFurniture(item._id)} className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded transition"><Trash2 size={20} /></button>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}

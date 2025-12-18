@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Box } from 'lucide-react';
+import { Box, Loader } from 'lucide-react';
 
 const Catalog = () => {
     const [furniture, setFurniture] = useState([]);
@@ -20,7 +20,11 @@ const Catalog = () => {
         fetchFurniture();
     }, []);
 
-    if (loading) return <div className="text-center py-20">Loading Catalog...</div>;
+    if (loading) return (
+        <div className="min-h-[calc(100vh-80px)] flex items-center justify-center">
+            <Loader className="animate-spin text-blue-600" size={48} />
+        </div>
+    );
 
     return (
         <div className="container mx-auto p-8">
@@ -31,24 +35,40 @@ const Catalog = () => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                {furniture.map((item) => (
-                    <div key={item._id} className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
-                        <div className="h-48 bg-slate-50 flex items-center justify-center p-6 group-hover:bg-blue-50/30 transition-colors">
-                            {item.imageURL ? (
-                                <img src={item.imageURL} alt={item.name} className="max-h-full max-w-full object-contain drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
-                            ) : (
-                                <Box className="text-slate-300" size={48} />
-                            )}
-                        </div>
-                        <div className="p-5">
-                            <h3 className="font-bold text-slate-800 text-lg mb-1">{item.name}</h3>
-                            <div className="flex justify-between items-center">
-                                <p className="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded inline-block">{item.category}</p>
-                                <span className="text-xs text-slate-400 font-mono">{item.dimensions?.width}x{item.dimensions?.height}cm</span>
+                {furniture.map((item) => {
+                    // Determine which thumbnail to show and asset type
+                    const has2D = !!item.imageURL;
+                    const has3D = !!item.modelURL && !!item.modelThumbnailURL;
+                    const thumbnailSrc = has3D ? item.modelThumbnailURL : item.imageURL;
+
+                    return (
+                        <div key={item._id} className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
+                            <div className="h-48 bg-slate-50 flex items-center justify-center p-6 group-hover:bg-blue-50/30 transition-colors relative">
+                                {thumbnailSrc ? (
+                                    <img src={thumbnailSrc} alt={item.name} className="max-h-full max-w-full object-contain drop-shadow-sm group-hover:scale-110 transition-transform duration-300" />
+                                ) : (
+                                    <Box className="text-slate-300" size={48} />
+                                )}
+                                {/* Asset type badges */}
+                                <div className="absolute top-2 right-2 flex gap-1">
+                                    {has2D && (
+                                        <span className="text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-bold">2D</span>
+                                    )}
+                                    {has3D && (
+                                        <span className="text-[10px] bg-purple-500 text-white px-2 py-0.5 rounded-full font-bold">3D</span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="p-5">
+                                <h3 className="font-bold text-slate-800 text-lg mb-1">{item.name}</h3>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-1 rounded inline-block">{item.category}</p>
+                                    <span className="text-xs text-slate-400 font-mono">{item.dimensions?.width}x{item.dimensions?.height}cm</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

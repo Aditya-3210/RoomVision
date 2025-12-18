@@ -11,13 +11,14 @@ exports.getAllFurniture = async (req, res) => {
 
 exports.addFurniture = async (req, res) => {
     try {
-        const { name, imageURL, dimensions, category, modelURL } = req.body;
+        const { name, imageURL, dimensions, category, modelURL, modelThumbnailURL } = req.body;
         const newFurniture = new Furniture({
             name,
             imageURL,
             dimensions,
             category,
-            modelURL
+            modelURL,
+            modelThumbnailURL
         });
         await newFurniture.save();
         res.status(201).json(newFurniture);

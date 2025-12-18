@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Draggable from 'react-draggable';
 import { ResizableBox } from 'react-resizable';
-import { Save, RotateCcw, RotateCw, Trash2, Upload, Plus } from 'lucide-react';
+import { Save, RotateCcw, RotateCw, Trash2, Upload, Plus, Loader } from 'lucide-react';
 import 'react-resizable/css/styles.css';
 
 const Planner = () => {
@@ -116,7 +116,11 @@ const Planner = () => {
         }
     };
 
-    if (loading) return <div>Loading Planner...</div>;
+    if (loading) return (
+        <div className="min-h-[calc(100vh-80px)] flex items-center justify-center">
+            <Loader className="animate-spin text-blue-600" size={48} />
+        </div>
+    );
 
     return (
         <div className="flex h-[calc(100vh-64px)] overflow-hidden">

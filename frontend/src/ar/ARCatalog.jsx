@@ -24,7 +24,7 @@ const ARCatalog = ({ onSelectModel }) => {
     }, []);
 
     if (loading) {
-        return <div className="p-8 flex justify-center"><Loader className="animate-spin text-blue-500" /></div>;
+        return <div className="p-8 flex justify-center"><Loader className="animate-spin text-blue-500" size={48} /></div>;
     }
 
     return (
@@ -43,8 +43,16 @@ const ARCatalog = ({ onSelectModel }) => {
                             onClick={() => onSelectModel(item.modelURL)}
                             className="group cursor-pointer border rounded-xl p-3 hover:border-blue-500 hover:shadow-md transition-all flex items-center gap-4"
                         >
-                            <div className="w-16 h-16 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0">
-                                <img src={item.imageURL} alt={item.name} className="w-full h-full object-cover" />
+                            <div className="w-16 h-16 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                {(item.modelThumbnailURL || item.imageURL) ? (
+                                    <img
+                                        src={item.modelThumbnailURL || item.imageURL}
+                                        alt={item.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <Box className="text-gray-300" size={32} />
+                                )}
                             </div>
                             <div>
                                 <h3 className="font-bold text-slate-700 group-hover:text-blue-600 transition-colors">{item.name}</h3>

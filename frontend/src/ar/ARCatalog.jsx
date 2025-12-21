@@ -9,7 +9,12 @@ const ARCatalog = ({ onSelectModel }) => {
     useEffect(() => {
         const fetchFurniture = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/furniture/all');
+                // Minimum 1s delay for smoother loader transition
+                const [res] = await Promise.all([
+                    axios.get('http://localhost:5000/furniture/all'),
+                    new Promise(resolve => setTimeout(resolve, 800))
+                ]);
+
                 // Filter only items that have a modelURL
                 const arItems = res.data.filter(item => item.modelURL && item.modelURL.trim() !== '');
                 setFurniture(arItems);

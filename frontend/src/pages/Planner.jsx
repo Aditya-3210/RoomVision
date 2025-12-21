@@ -15,14 +15,20 @@ const Planner = () => {
     const [selectedItemId, setSelectedItemId] = useState(null);
     const [title, setTitle] = useState('My New Room Design');
     const [loading, setLoading] = useState(true);
+    const [showUploadModal, setShowUploadModal] = useState(false);
 
     // Load initial data
     useEffect(() => {
         const init = async () => {
+            // Minimum 1s delay for smoother loader transition
+            const minLoadTime = new Promise(resolve => setTimeout(resolve, 800));
+
             try {
-                // Load Catalog
+                // Load Catalog - only items with 2D images for canvas planner
                 const furnRes = await axios.get('http://localhost:5000/furniture/all');
-                setFurniture(furnRes.data);
+                // Filter only items that have a 2D imageURL
+                const items2D = furnRes.data.filter(item => item.imageURL && item.imageURL.trim() !== '');
+                setFurniture(items2D);
 
                 // Load Project if ID exists
                 if (id) {
@@ -47,6 +53,7 @@ const Planner = () => {
             } catch (err) {
                 console.error(err);
             } finally {
+                await minLoadTime;
                 setLoading(false);
             }
         };
@@ -59,6 +66,25 @@ const Planner = () => {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setRoomImage(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleCustomUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const customItem = {
+                    _id: 'custom-' + Date.now(),
+                    name: file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
+                    imageURL: reader.result, // Base64
+                    category: 'Custom',
+                    dimensions: { width: 100, height: 100 }
+                };
+                addItemToCanvas(customItem);
+                setShowUploadModal(false);
             };
             reader.readAsDataURL(file);
         }
@@ -93,7 +119,12 @@ const Planner = () => {
             const payload = {
                 title,
                 roomImageURL: roomImage,
-                itemsUsed: items.map(({ uniqueId, ...rest }) => rest) // Remove frontend-only ID
+                // Remove frontend-only fields (uniqueId) and custom _id strings  
+                itemsUsed: items.map(({ uniqueId, _id, ...rest }) => ({
+                    ...rest,
+                    // Only include _id if it's from the catalog (not custom items)
+                    ...(!_id.toString().startsWith('custom-') && { id: _id })
+                }))
             };
 
             if (id) {
@@ -127,8 +158,14 @@ const Planner = () => {
             {/* Sidebar - Furniture Catalog */}
             <div className="w-80 bg-white shadow-xl z-20 overflow-y-auto hidden md:flex flex-col border-r">
                 <div className="p-4 border-b">
-                    <h2 className="font-bold text-lg mb-2">Furniture Items</h2>
-                    <p className="text-sm text-gray-500">Click to add to canvas</p>
+                    <h2 className="font-bold text-lg mb-2">2D Furniture Items</h2>
+                    <p className="text-sm text-gray-500 mb-3">Click to add to canvas</p>
+                    <button
+                        onClick={() => setShowUploadModal(true)}
+                        className="w-full flex items-center justify-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg px-3 py-2 font-semibold transition-all"
+                    >
+                        <Upload size={16} /> Upload Your Own
+                    </button>
                 </div>
                 <div className="p-4 grid grid-cols-2 gap-4">
                     {furniture.map(item => (
@@ -196,6 +233,50 @@ const Planner = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Custom Furniture Upload Modal */}
+            {showUploadModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={() => setShowUploadModal(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="text-center mb-6">
+                            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                                <Upload className="text-blue-600" size={32} />
+                            </div>
+                            <h3 className="text-2xl font-bold text-slate-800 mb-2">Upload Custom Furniture</h3>
+                            <p className="text-slate-600 text-sm">
+                                Upload a 2D furniture image to use in your design.<br />
+                                <span className="font-semibold text-blue-600">Best results with transparent backgrounds!</span>
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <label className="block">
+                                <span className="sr-only">Choose furniture image</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleCustomUpload}
+                                    className="block w-full text-sm text-slate-500
+                                        file:mr-4 file:py-3 file:px-6
+                                        file:rounded-lg file:border-0
+                                        file:text-sm file:font-semibold
+                                        file:bg-blue-50 file:text-blue-700
+                                        hover:file:bg-blue-100
+                                        file:cursor-pointer cursor-pointer
+                                        transition-all"
+                                />
+                            </label>
+
+                            <button
+                                onClick={() => setShowUploadModal(false)}
+                                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-slate-700 font-semibold hover:bg-slate-50 transition-all"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

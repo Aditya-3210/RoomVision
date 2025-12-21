@@ -9,7 +9,11 @@ const Catalog = () => {
     useEffect(() => {
         const fetchFurniture = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/furniture/all');
+                // Minimum 1s delay for smoother loader transition
+                const [res] = await Promise.all([
+                    axios.get('http://localhost:5000/furniture/all'),
+                    new Promise(resolve => setTimeout(resolve, 800))
+                ]);
                 setFurniture(res.data);
             } catch (err) {
                 console.error(err);
